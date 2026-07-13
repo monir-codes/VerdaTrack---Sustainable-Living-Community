@@ -62,6 +62,27 @@ const handleJoin = async () => {
         participants: (prev.participants || 0) + 1,
         participantEmails: [...(prev.participantEmails || []), user.email]
       }));
+
+      // Remove from deletedActivities if present
+      let deleted = JSON.parse(localStorage.getItem('deletedActivities') || '[]');
+      if (deleted.includes(id)) {
+        deleted = deleted.filter(dId => dId !== id);
+        localStorage.setItem('deletedActivities', JSON.stringify(deleted));
+      }
+
+      // Add to myActivities
+      const savedActivities = JSON.parse(localStorage.getItem('myActivities') || '[]');
+      if (!savedActivities.find(a => a.id === id)) {
+        savedActivities.push({
+          id: id,
+          title: challenge.title || "New Challenge",
+          date: challenge.startDate || new Date().toISOString().split('T')[0],
+          location: "VerdaTrack Platform",
+          status: "Ongoing",
+          impact: challenge.impactMetric || "Pending",
+        });
+        localStorage.setItem('myActivities', JSON.stringify(savedActivities));
+      }
     } else {
       toast.error(data.message || "Join failed");
     }
@@ -80,6 +101,9 @@ const handleJoin = async () => {
     animate: { opacity: 1, y: 0 },
     transition: { duration: 0.6, ease: "easeOut" }
   };
+
+  const isDeletedLocally = JSON.parse(localStorage.getItem('deletedActivities') || '[]').includes(id);
+  const hasJoined = challenge.participantEmails?.includes(user?.email) && !isDeletedLocally;
 
   return (
     <div className="min-h-screen bg-[#121619] text-white pb-20 overflow-hidden">
@@ -162,13 +186,13 @@ const handleJoin = async () => {
                 
                 <motion.button 
                   onClick={handleJoin}
-                  disabled={joining || challenge.participantEmails?.includes(user?.email)}
+                  disabled={joining || hasJoined}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.95 }}
                   className="w-full bg-green-500 hover:bg-green-400 disabled:bg-gray-700 disabled:text-gray-400 text-black py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg transition-all mb-6 flex items-center justify-center"
                 >
                   {joining ? <Loader2 className="animate-spin" /> : 
-                   challenge.participantEmails?.includes(user?.email) ? "Already Accepted" : "Accept Challenge"}
+                   hasJoined ? "Already Accepted" : "Accept Challenge"}
                 </motion.button>
                 
                 <button className="flex items-center justify-center gap-2 text-gray-500 hover:text-white transition-colors text-[10px] font-black uppercase tracking-widest mx-auto group">

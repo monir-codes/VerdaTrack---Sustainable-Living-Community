@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import toast from 'react-hot-toast';
+import Swal from 'sweetalert2';
 
 const MyActivities = () => {
   const { user } = useContext(AuthContext);
@@ -25,10 +26,36 @@ const MyActivities = () => {
 
   const handleDelete = (e, id) => {
     e.stopPropagation();
-    const updatedActivities = activities.filter(activity => activity.id !== id);
-    setActivities(updatedActivities);
-    localStorage.setItem('myActivities', JSON.stringify(updatedActivities));
-    toast.success("Activity removed successfully!");
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#22c55e",
+      cancelButtonColor: "#ef4444",
+      confirmButtonText: "Yes, delete it!",
+      background: "#1d2327",
+      color: "#fff"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const updatedActivities = activities.filter(activity => activity.id !== id);
+        setActivities(updatedActivities);
+        localStorage.setItem('myActivities', JSON.stringify(updatedActivities));
+        
+        const deleted = JSON.parse(localStorage.getItem('deletedActivities') || '[]');
+        if (!deleted.includes(id)) {
+          localStorage.setItem('deletedActivities', JSON.stringify([...deleted, id]));
+        }
+        
+        Swal.fire({
+          title: "Deleted!",
+          text: "Your activity has been removed.",
+          icon: "success",
+          background: "#1d2327",
+          color: "#fff"
+        });
+      }
+    });
   };
   const navigateActivitiesDetails = (id)=>{
     return navigate(`/my-activities/${id}`)
@@ -164,7 +191,10 @@ const MyActivities = () => {
             <p className="text-gray-500 font-bold uppercase tracking-widest text-sm">
               No activities tracked yet.
             </p>
-            <button className="mt-4 text-green-500 font-black uppercase text-xs hover:underline">
+            <button 
+              onClick={() => navigate('/challenges')}
+              className="mt-4 text-green-500 font-black uppercase text-xs hover:underline"
+            >
               Start a new challenge
             </button>
           </div>
