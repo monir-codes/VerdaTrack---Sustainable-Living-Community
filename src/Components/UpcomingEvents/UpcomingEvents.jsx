@@ -53,13 +53,24 @@ const UpcomingEvents = () => {
   ];
 
   const [eventList, setEventList] = useState(initialEvents);
-  const [registeredEvents, setRegisteredEvents] = useState([]);
+
+  const getSavedActivities = () => {
+    const saved = localStorage.getItem('myActivities');
+    return saved ? JSON.parse(saved) : [];
+  };
+
+  const [registeredEvents, setRegisteredEvents] = useState(() => {
+    const saved = getSavedActivities();
+    return saved.map(activity => activity.id.toString());
+  });
 
   const handleRegister = (id) => {
-    if (registeredEvents.includes(id)) {
+    if (registeredEvents.includes(id.toString())) {
       toast.error("You are already registered for this event!");
       return;
     }
+
+    let joinedEvent = null;
 
     setEventList(prevEvents => prevEvents.map(event => {
       if (event._id === id) {
@@ -67,13 +78,28 @@ const UpcomingEvents = () => {
           toast.error("This event is fully booked!");
           return event;
         }
+        joinedEvent = event;
         return { ...event, currentParticipants: event.currentParticipants + 1 };
       }
       return event;
     }));
 
-    setRegisteredEvents([...registeredEvents, id]);
-    toast.success("Successfully registered for the event!");
+    if (joinedEvent) {
+      setRegisteredEvents([...registeredEvents, id.toString()]);
+      
+      const savedActivities = getSavedActivities();
+      const newActivity = {
+        id: id,
+        title: joinedEvent.title,
+        date: formatDate(joinedEvent.date),
+        location: joinedEvent.location,
+        status: "Upcoming",
+        impact: "Pending",
+      };
+      localStorage.setItem('myActivities', JSON.stringify([...savedActivities, newActivity]));
+      
+      toast.success("Successfully registered for the event!");
+    }
   };
 
   const containerVariants = {
@@ -194,15 +220,15 @@ const UpcomingEvents = () => {
                   onClick={() => handleRegister(event._id)}
                   disabled={event.currentParticipants >= event.maxParticipants}
                   className={`w-full py-3 border rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all
-                    ${registeredEvents.includes(event._id) 
+                    ${registeredEvents.includes(event._id.toString()) 
                       ? "bg-green-500 text-black border-green-500 cursor-not-allowed" 
                       : event.currentParticipants >= event.maxParticipants
                       ? "bg-gray-800 text-gray-500 border-gray-800 cursor-not-allowed"
                       : "bg-white/5 border-white/5 group-hover:bg-green-500 group-hover:text-black hover:border-green-500"
                     }`}
                 >
-                  {registeredEvents.includes(event._id) 
-                    ? "Registered" 
+                  {registeredEvents.includes(event._id.toString()) 
+                    ? "Registered"  
                     : event.currentParticipants >= event.maxParticipants 
                     ? "Fully Booked" 
                     : "Register Now"}

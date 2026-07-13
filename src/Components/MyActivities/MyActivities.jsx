@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { AuthContext } from "../../Auth/AuthContext/AuthContext";
 import {
   CheckCircle2,
@@ -8,40 +8,28 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import toast from 'react-hot-toast';
 
 const MyActivities = () => {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  // ডেমো ডাটা (পরবর্তীতে API থেকে আসবে)
-  const activities = [
-    {
-      id: 1,
-      title: "Coastal Cleanup Drive",
-      date: "Oct 24, 2026",
-      location: "Patenga Beach",
-      status: "Completed",
-      impact: "+50 Verda Points",
-    },
-    {
-      id: 2,
-      title: "Urban Tree Plantation",
-      date: "Nov 02, 2026",
-      location: "Ramna Park",
-      status: "Upcoming",
-      impact: "Pending",
-    },
-    {
-      id: 3,
-      title: "Solar Power Workshop",
-      date: "Nov 15, 2026",
-      location: "Community Center",
-      status: "Ongoing",
-      impact: "+20 Verda Points",
-    },
-  ];
+  const [activities, setActivities] = useState([]);
 
+  useEffect(() => {
+    const saved = localStorage.getItem('myActivities');
+    if (saved) {
+      setActivities(JSON.parse(saved));
+    }
+  }, []);
 
+  const handleDelete = (e, id) => {
+    e.stopPropagation();
+    const updatedActivities = activities.filter(activity => activity.id !== id);
+    setActivities(updatedActivities);
+    localStorage.setItem('myActivities', JSON.stringify(updatedActivities));
+    toast.success("Activity removed successfully!");
+  };
   const navigateActivitiesDetails = (id)=>{
     return navigate(`/my-activities/${id}`)
   }
@@ -155,7 +143,10 @@ const MyActivities = () => {
                         <button className="p-2 hover:bg-white/5 rounded-lg text-gray-400 hover:text-white transition-all">
                           <ExternalLink size={18} />
                         </button>
-                        <button className="p-2 hover:bg-red-500/10 rounded-lg text-gray-400 hover:text-red-500 transition-all">
+                        <button 
+                          onClick={(e) => handleDelete(e, item.id)}
+                          className="p-2 hover:bg-red-500/10 rounded-lg text-gray-400 hover:text-red-500 transition-all"
+                        >
                           <Trash2 size={18} />
                         </button>
                       </div>
