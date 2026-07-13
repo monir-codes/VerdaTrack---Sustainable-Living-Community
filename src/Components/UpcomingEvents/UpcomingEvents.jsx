@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, MapPin, ArrowRight, BellRing, Users } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const UpcomingEvents = () => {
   // আপনার দেওয়া JSON স্ট্রাকচার অনুযায়ী ডেটা
-  const events = [
+  const initialEvents = [
     {
       _id: "1",
       title: "Coastal Cleanup Drive",
@@ -50,6 +51,30 @@ const UpcomingEvents = () => {
       image: "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?q=80&w=600"
     }
   ];
+
+  const [eventList, setEventList] = useState(initialEvents);
+  const [registeredEvents, setRegisteredEvents] = useState([]);
+
+  const handleRegister = (id) => {
+    if (registeredEvents.includes(id)) {
+      toast.error("You are already registered for this event!");
+      return;
+    }
+
+    setEventList(prevEvents => prevEvents.map(event => {
+      if (event._id === id) {
+        if (event.currentParticipants >= event.maxParticipants) {
+          toast.error("This event is fully booked!");
+          return event;
+        }
+        return { ...event, currentParticipants: event.currentParticipants + 1 };
+      }
+      return event;
+    }));
+
+    setRegisteredEvents([...registeredEvents, id]);
+    toast.success("Successfully registered for the event!");
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -111,7 +136,7 @@ const UpcomingEvents = () => {
         viewport={{ once: false, amount: 0.1 }}
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
       >
-        {events.map((event) => (
+        {eventList.map((event) => (
           <motion.div 
             key={event._id} 
             variants={cardVariants}
@@ -165,8 +190,22 @@ const UpcomingEvents = () => {
                   />
                 </div>
                 
-                <button className="w-full py-3 bg-white/5 border border-white/5 group-hover:bg-green-500 group-hover:text-black rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all">
-                  Register Now
+                <button 
+                  onClick={() => handleRegister(event._id)}
+                  disabled={event.currentParticipants >= event.maxParticipants}
+                  className={`w-full py-3 border rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all
+                    ${registeredEvents.includes(event._id) 
+                      ? "bg-green-500 text-black border-green-500 cursor-not-allowed" 
+                      : event.currentParticipants >= event.maxParticipants
+                      ? "bg-gray-800 text-gray-500 border-gray-800 cursor-not-allowed"
+                      : "bg-white/5 border-white/5 group-hover:bg-green-500 group-hover:text-black hover:border-green-500"
+                    }`}
+                >
+                  {registeredEvents.includes(event._id) 
+                    ? "Registered" 
+                    : event.currentParticipants >= event.maxParticipants 
+                    ? "Fully Booked" 
+                    : "Register Now"}
                 </button>
               </div>
             </div>
