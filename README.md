@@ -5,10 +5,10 @@
 ---
 
 ## 🔗 Live Demo
-https://ecotrack-monir.vercel.app/
+https://verdatrack.vercel.app/
 
 ## 💻 GitHub
-https://github.com/monir-codes/EcoTrack---Sustainable-Living-Community
+https://github.com/monir-codes/VerdaTrack---Sustainable-Living-Community
 
 ---
 
@@ -50,7 +50,7 @@ VerdaTrack is a community-based platform where users can track eco-friendly acti
 ## 🚀 Installation
 
 ```bash
-git clone https://github.com/monir-codes/EcoTrack---Sustainable-Living-Community.git
+git clone https://github.com/monir-codes/VerdaTrack---Sustainable-Living-Community
 cd VerdaTrack
 npm install
 npm run dev
